@@ -28,4 +28,4 @@ node_modules
 .lock-wscript
 
 # Sqlite databases
-db/*
+db/*.db
