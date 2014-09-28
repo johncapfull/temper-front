@@ -2,10 +2,10 @@
   "name": "temper-front",
   "version": "0.0.1",
   "description": "none",
-  "main": "server.js",
+  "main": "temper-front.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node temper-front.js"
   },
   "dependencies": {
     "sqlite3": "~2.1.19",
