@@ -33,24 +33,16 @@ function dateToUnixTime(date) {
 ///////////////////////////////////////////////////////////////////////////
 // Write a single temperature record in JSON format to database table.
 
-function insertTemp(values) {
+// time - unix time
+// sensors - {"name1": "value1", "name2": "value2", ...}
+function insertTemp(time, sensors) {
     var statement = db.prepare("INSERT INTO temperature VALUES (?, ?)");
 
-    for (var i = 0; i < values.length; i++) {
-        var value = values[i];
-        if (!value.celsius || !value.time) {
-            throw new Error('invalid insert request -- no celsius or time values');
-        }
+    for (var name in sensors) {
+        var value = sensors[name];
 
-        var celsius = parseFloat(value.celsius);
-        var time = new Date(value.time);
-
-        if (isNaN(time.getTime()) || isNaN(celsius)) {
-            throw new Error('invalid time/temperature format');
-        }
-
-        // Unix time is in seconds, but javascript provide milliseconds
-        statement.run(dateToUnixTime(time), celsius);
+        // TODO: support multiple sensors
+        statement.run(time, value);
     }
     statement.finalize();
 }
@@ -83,25 +75,60 @@ function handleError(err, req, res, next) {
 }
 /////////////////////////////////////////////////////////
 
-function handleAbout(req, res) {
-      res.send('Hello World');
+function parseTimestamp(str) {
+    // 1) check for unix timestamp
+    var intRegex = /^\d+$/;
+    if (intRegex.test(str)) {
+        var result = parseInt(str);
+        if (isNaN(result)) {
+            throw new Error("invalid time format");
+        }
+        return result;
+    }
+
+    // 2) try parse ISO date
+    var time = new Date(str);
+    if (isNaN(time.getTime())) {
+        throw new Error('invalid time format');
+    }
+    return dateToUnixTime(time);
 }
 
+// add?time=unix_time_sec&sensor=main&value=33.4
 function handleInsert(req, res) {
-    insertTemp([req.query]);
+    if (!req.query || 
+            !req.query.time || 
+            !req.query.sensor ||
+            !req.query.value) {
+        throw new Error('invalid request format');
+    }
+    
+    var time = parseTimestamp(req.query.time);
+
+    var data = {};
+    data[req.query.sensor] = req.query.value;
+
+    insertTemp(time, data);
     res.end('Success');
 }
 
+//  time : "unix_time_sec",
+//  sensors: { "kitchen" : "17.3", "room": "24.2" }
 function handleInsertJSON(req, res) {
-    // Format:
-    // [{"celcius" : "10", "time" : "1970-01-01T01:00"}, ...]
-
-    if (!req.body || !req.body.length || req.body.length == 0) {
-        throw new Error('array have invalid format');
+    if (!req.body || !req.body.time || !req.body.sensors) {
+        throw new Error('invalid request format');
     }
 
-    insertTemp(req.body);
+    var time = parseTimestamp(req.body.time);
+
+    insertTemp(time, req.body.sensors);
     res.json({result : "success"});
+}
+
+function handleTest(req, res) {
+    var time = parseTimestamp(req.query.time);
+    
+    res.end('Result:\n' + time.toString());
 }
 
 /////////////////////////////////////////////////////////
@@ -162,7 +189,7 @@ function run() {
     });
 
     // Router
-    app.get  (base + '/about', handleAbout);
+    app.get  (base + '/test', handleTest);
     app.get  (base + '/add', handleInsert);
     app.post (base + '/add.json', handleInsertJSON);
     app.get  (base + '/query', queryTemperature);
