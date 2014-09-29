@@ -2,29 +2,45 @@
 <html>
 <head>
     <title>Temper</title>
-    <meta name="description" content="Temperature Data">
-        <meta name="author" content="johncapfull">
-        <meta name="version" content="0.1">
-        <script src="libs/jquery-2.1.1/jquery-2.1.1.min.js" type="text/javascript"></script>
-        <script src="http://code.highcharts.com/highcharts.js" type="text/javascript"></script>
-        <script src="js/chart.js" type="text/javascript"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <script type="text/javascript">
-            $(document).ready(function() {
-                initFace();
-            });
-    </script>           
+    <meta name="description" content="Temperature Data">
+    <meta charset="utf-8">
+    <meta name="author" content="johncapfull">
+    <meta name="version" content="0.1">
+
+    <!-- bootstrap -->        
+    <link rel="stylesheet" href="libs/bootstrap-3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="libs/bootstrap-3.2.0/css/bootstrap-theme.min.css">
 </head>
 
 <body>
-    <div id="temper_chart" style="width: 100%; height: 400px"></div>
-    <div>
-    days: 
-    <a id="days_1" href="#">1</a> | 
-    <a id="days_2" href="#">2</a> | 
-    <a id="days_5" href="#">5</a> |
-    <a id="days_7" href="#">week</a> |
-    <a id="days_365" href="#">whole motherfucking year</a>
+    <div class="container">
+        <h1>Temperatures</h1>
+
+        <div id="temper_chart" style="width: 100%; height: 400px"></div>
+
+        <ul class="pagination">
+          <li class="active"><a id="days_1" href="#">1</a></li>
+          <li><a id="days_2" href="#">2</a></li>
+          <li><a id="days_5" href="#">5</a></li>
+          <li><a id="days_7" href="#">week</a></li>
+          <li><a id="days_365" href="#">year</a></li>
+        </ul>
     </div>
+
+    <script src="libs/jquery-2.1.1/jquery-2.1.1.min.js" type="text/javascript"></script>
+    <script src="libs/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js" type="text/javascript"></script>
+
+    <script src="js/chart.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            initFace();
+        });
+    </script>           
+
 </body>
 </html>

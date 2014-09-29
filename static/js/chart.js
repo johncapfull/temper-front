@@ -41,6 +41,24 @@ function abortAll() {
     activeReq = 0;
 }
 
+// Simple Moving Average
+// http://rosettacode.org/wiki/Averages/Simple_moving_average#C.2B.2B
+function simple_moving_averager(period) {
+    var nums = [];
+    return function(num) {
+        nums.push(num);
+        if (nums.length > period)
+            nums.splice(0,1);  // remove the first element of the array
+        var sum = 0;
+        for (var i in nums)
+            sum += nums[i];
+        var n = period;
+        if (nums.length < period)
+            n = nums.length;
+        return(sum/n);
+    }
+}
+
 // Get data from server in JSON format (query time series when sensor was outside).
 function getData(start) {
     var request = 'query?count=-1&start_date=' + start.toISOString();
@@ -55,14 +73,22 @@ function getData(start) {
         if (series == null) {
             series = makeSeries(id);
         }
+
+        // TODO: For test -- apply SMA
+        var sma = simple_moving_averager(15); // ~ 15 minutes
         
         // Iterate JSON data series and add to plot
         var chartData = [];
         var i = 0;
         while (data[i]) {
+            var value = sma(data[i].celsius);
+
+            // leaving 2 numbers after decimal point
+            value = Math.round(value * 100) / 100
+
             chartData.push([
                 data[i].time * 1000,
-                data[i].celsius]);
+                value]);
             i++;
         }
 
@@ -108,7 +134,7 @@ function initChart(days) {
         },
         
         title: {
-            text: 'Temperatures'
+            text: '' // empty title to hide
         },
 
         subtitle: {
@@ -173,21 +199,35 @@ function initChart(days) {
 
 function initDayClicker() {
     var days = [1, 2, 5, 7, 31, 365];
+
+    var id = function(day) {
+        return "#days_" + day.toString();
+    }
+
+    var clean = function() {
+        for (var i = 0; i < days.length; i++) {
+            $(id(days[i])).parent().removeClass("active");
+        }
+    }
+
+    var requestDay = function(day) {
+        clean();
+        $(id(day)).parent().addClass("active");
+
+        abortAll();
+        chart.showLoading();
+        getDataForDays(day);
+    }
+
     for (var i = 0; i < days.length; i++) {
         var day = days[i];
 
-        var requestDay = function(day) {
-            abortAll();
-            chart.showLoading();
-            getDataForDays(day);
-        }
-
         var requestTheDay = requestDay.bind(undefined, day);
-        $("#days_" + day.toString()).click(requestTheDay);
+        $(id(day)).click(requestTheDay);
     }
 }
 
 function initFace() {
     initDayClicker();
-    initChart(2);
+    initChart(1);
 }
